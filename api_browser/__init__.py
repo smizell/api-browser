@@ -1,13 +1,17 @@
 import click
 import flask.cli
 import logging
+import os
 import webbrowser
 from flask import Flask, render_template
 from threading import Timer
 
 ####### Server
 
-app = Flask(__name__)
+current_dir = os.path.abspath(os.path.dirname(__file__))
+template_dir = os.path.join(current_dir, "templates")
+
+app = Flask(__name__, template_folder=template_dir)
 
 # Flask shows some stuff during boot I don't want to show
 # This disables that. We'll improve this later by maybe
