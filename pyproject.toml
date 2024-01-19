@@ -1,0 +1,27 @@
+[project]
+name = "api-browser"
+version = "0.1"
+description = "Browse API documentation"
+readme = "README.md"
+requires-python = ">=3.8"
+authors = [{ name = "Stephen Mizell" }]
+license = { text = "Apache-2.0" }
+classifiers = ["License :: OSI Approved :: Apache Software License"]
+dependencies = ["click", "Flask"]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project.urls]
+Homepage = "https://github.com/smizell/api-browser"
+Changelog = "https://github.com/smizell/api-browser/releases"
+Issues = "https://github.com/smizell/api-browser/issues"
+CI = "https://github.com/smizell/api-browser/actions"
+
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[project.scripts]
+api_browser = "api_browser.__init__:cli"
