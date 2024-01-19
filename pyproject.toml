@@ -24,7 +24,7 @@ CI = "https://github.com/smizell/api-browser/actions"
 test = ["pytest"]
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["api_browser"]
 
 [project.scripts]
 api_browser = "api_browser.__init__:cli"
