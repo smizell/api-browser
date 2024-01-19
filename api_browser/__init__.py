@@ -8,8 +8,8 @@ from threading import Timer
 
 ####### Server
 
-current_dir = os.path.abspath(os.path.dirname(__file__))
-template_dir = os.path.join(current_dir, "templates")
+current_dir = os.path.dirname(__file__)
+template_dir = os.path.abspath(os.path.join(current_dir, "templates"))
 
 app = Flask(__name__, template_folder=template_dir)
 
