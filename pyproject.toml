@@ -23,8 +23,8 @@ CI = "https://github.com/smizell/api-browser/actions"
 [project.optional-dependencies]
 test = ["pytest"]
 
-[tool.setuptools.packages.find]
-where = ["api_browser/templates"]
+[tool.setuptools.package-data]
+api_browser = ["templates/*"]
 
 [project.scripts]
 api_browser = "api_browser.__init__:cli"
