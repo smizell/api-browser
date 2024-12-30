@@ -35,6 +35,23 @@ Display a summary table of the API endpoints in the terminal.
 
 Display a schema from the OpenAPI file in a concise tree format. Required properties are marked with an asterisk (*).
 
+### `api_browser urls <filename>`
+
+Display a tree view of URL segments from the OpenAPI file, showing how endpoints are hierarchically organized. Each endpoint shows its available operation IDs.
+
+Example:
+```
+├── customers (listCustomers, createCustomer)
+│   ├── {id} (getCustomer, updateCustomer, deleteCustomer)
+│   │   └── orders (listCustomerOrders, createCustomerOrder)
+│   │       └── {orderId} (getCustomerOrder, updateCustomerOrder, deleteCustomerOrder)
+│   └── search (searchCustomers)
+└── orders (listOrders, createOrder)
+    └── {id} (getOrder, updateOrder, deleteOrder)
+```
+
+This visualization helps understand the API's URL structure, how different endpoints are related, and what operations are available at each endpoint.
+
 ## Development
 
 ### Installation

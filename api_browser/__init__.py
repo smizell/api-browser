@@ -249,9 +249,65 @@ def schema(filename, schema_name):
     print_schema_tree(schema_data)
 
 
+@click.command()
+@click.argument("filename")
+def urls(filename):
+    """Display a tree of URL segments from the OpenAPI file."""
+    # Read and parse the OpenAPI file
+    with open(filename) as f:
+        api_spec = yaml.safe_load(f)
+    
+    # Build a tree structure from the paths
+    root = {}
+    paths = get_with_refs(api_spec, ["paths"], default={})
+    
+    for path, path_item in paths.items():
+        # Split path into segments and remove empty ones
+        segments = [s for s in path.split("/") if s]
+        
+        # Start at the root
+        current = root
+        
+        # Build the tree, keeping track of operations at each level
+        for i, segment in enumerate(segments):
+            if segment not in current:
+                current[segment] = {"children": {}, "operations": []}
+            
+            # If this is the last segment, store the operations
+            if i == len(segments) - 1:
+                for method, operation in path_item.items():
+                    if method != "parameters":  # Skip common parameters
+                        operation_id = get_with_refs(operation, ["operationId"], default="")
+                        if operation_id:
+                            current[segment]["operations"].append(operation_id)
+            
+            current = current[segment]["children"]
+    
+    def print_tree(node, indent=""):
+        """Print the URL segments as a tree."""
+        items = sorted(node.items())  # Sort segments alphabetically
+        for i, (segment, data) in enumerate(items):
+            is_last = i == len(items) - 1
+            current_prefix = "└── " if is_last else "├── "
+            next_indent = indent + ("    " if is_last else "│   ")
+            
+            # Format operations if they exist
+            operations_str = ""
+            if data["operations"]:
+                sorted_ops = sorted(data["operations"])  # Sort operations alphabetically
+                operations_str = f" ({', '.join(sorted_ops)})"
+            
+            click.echo(f"{indent}{current_prefix}{segment}{operations_str}")
+            print_tree(data["children"], next_indent)
+    
+    # Print the tree
+    print_tree(root)
+
+
 # Add the new command to the CLI group
 cli.add_command(summary)
 cli.add_command(schema)
+cli.add_command(urls)
 
 
 if __name__ == "__main__":

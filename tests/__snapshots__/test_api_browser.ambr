@@ -46,3 +46,15 @@
   
   '''
 # ---
+# name: test_urls_command
+  '''
+  ├── customers (createCustomer, listCustomers)
+  │   ├── search (searchCustomers)
+  │   └── {id} (deleteCustomer, getCustomer, updateCustomer)
+  │       └── orders (createCustomerOrder, listCustomerOrders)
+  │           └── {orderId} (deleteCustomerOrder, getCustomerOrder, updateCustomerOrder)
+  └── orders (createOrder, listOrders)
+      └── {id} (deleteOrder, getOrder, updateOrder)
+  
+  '''
+# ---
