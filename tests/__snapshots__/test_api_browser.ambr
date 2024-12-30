@@ -1,0 +1,48 @@
+# serializer version: 1
+# name: test_schema_command
+  '''
+  Schema: User
+  * indicates required property
+  
+  ├── address (Address)
+  │   ├── city (string)
+  │   ├── country (string)
+  │   ├── street* (string)
+  │   └── user (User)
+  │       ├── address (Address)
+  │       ├── email (string)
+  │       ├── friends (array[object])
+  │       │   ├── hobbies (array[object])
+  │       │   │   ├── level (string)
+  │       │   │   └── name* (string)
+  │       │   ├── id (integer)
+  │       │   └── name (string)
+  │       ├── id* (integer)
+  │       ├── name* (string)
+  │       └── tags (array[string])
+  ├── email (string)
+  ├── friends (array[object])
+  │   ├── hobbies (array[object])
+  │   │   ├── level (string)
+  │   │   └── name* (string)
+  │   ├── id (integer)
+  │   └── name (string)
+  ├── id* (integer)
+  ├── name* (string)
+  └── tags (array[string])
+  
+  '''
+# ---
+# name: test_summary_command
+  '''
+  Title: Test API
+  Description: A test API description
+  
+  +--------+----------+----------------+----------+------------------+-------------------+
+  | Path   | Method   | Operation ID   |   Status | Request Schema   | Response Schema   |
+  +========+==========+================+==========+==================+===================+
+  | /pets  | GET      | listPets       |      200 | (none)           | PetList           |
+  +--------+----------+----------------+----------+------------------+-------------------+
+  
+  '''
+# ---

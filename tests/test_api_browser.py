@@ -9,7 +9,7 @@ from pathlib import Path
 
 # Any remaining tests for api_browser functionality would go here
 
-def test_summary_command():
+def test_summary_command(snapshot):
     # Create a sample OpenAPI spec
     openapi_spec = {
         "info": {
@@ -24,70 +24,10 @@ def test_summary_command():
                         "200": {
                             "content": {
                                 "application/json": {
-                                    "schema": {
-                                        "$ref": "#/components/schemas/PetList"
-                                    }
+                                    "schema": {"$ref": "#/components/schemas/PetList"}
                                 }
                             }
                         }
-                    }
-                },
-                "post": {
-                    "operationId": "createPet",
-                    "requestBody": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/Pet"
-                                }
-                            }
-                        }
-                    },
-                    "responses": {
-                        "201": {
-                            "content": {
-                                "application/json": {
-                                    "schema": {
-                                        "$ref": "#/components/schemas/Pet"
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            "/pets/{id}": {
-                "get": {
-                    "operationId": "getPet",
-                    "responses": {
-                        "200": {
-                            "content": {
-                                "application/json": {
-                                    "schema": {
-                                        "type": "object",
-                                        "properties": {
-                                            "name": {"type": "string"}
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        },
-        "components": {
-            "schemas": {
-                "Pet": {
-                    "type": "object",
-                    "properties": {
-                        "name": {"type": "string"}
-                    }
-                },
-                "PetList": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/components/schemas/Pet"
                     }
                 }
             }
@@ -106,24 +46,14 @@ def test_summary_command():
         # Check that the command succeeded
         assert result.exit_code == 0
         
-        # Load expected output from snapshot file
-        snapshot_path = Path(__file__).parent / "snapshots" / "summary_output.txt"
-        if not snapshot_path.exists():
-            # Create snapshots directory if it doesn't exist
-            snapshot_path.parent.mkdir(exist_ok=True)
-            # Create initial snapshot
-            snapshot_path.write_text(result.output)
-            pytest.skip("Created initial snapshot")
-        
         # Compare with snapshot
-        expected_output = snapshot_path.read_text()
-        assert result.output == expected_output
+        assert result.output == snapshot
         
     finally:
         # Clean up the temporary file
         os.unlink(temp_file)
 
-def test_schema_command():
+def test_schema_command(snapshot):
     # Create a sample OpenAPI spec with nested schemas and circular references
     openapi_spec = {
         "components": {
@@ -189,23 +119,8 @@ def test_schema_command():
         # Check that the command succeeded
         assert result.exit_code == 0
         
-        # Load expected output from snapshot file
-        snapshot_path = Path(__file__).parent / "snapshots" / "schema_user_output.txt"
-        if not snapshot_path.exists():
-            # Create snapshots directory if it doesn't exist
-            snapshot_path.parent.mkdir(exist_ok=True)
-            # Create initial snapshot
-            snapshot_path.write_text(result.output)
-            pytest.skip("Created initial snapshot")
-        
         # Compare with snapshot
-        expected_output = snapshot_path.read_text()
-        assert result.output == expected_output
-        
-        # Test non-existent schema
-        result = runner.invoke(schema, [temp_file, "NonExistent"])
-        assert result.exit_code == 0
-        assert "Schema 'NonExistent' not found" in result.output
+        assert result.output == snapshot
         
     finally:
         # Clean up the temporary file

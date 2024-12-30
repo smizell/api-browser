@@ -37,29 +37,61 @@ Display a schema from the OpenAPI file in a concise tree format. Required proper
 
 ## Development
 
-To contribute to this library, first checkout the code. Then create a new virtual environment:
+### Installation
+
+Clone the repository and install the package in development mode with test dependencies:
+
 ```bash
-cd api-browser
-python -m venv venv
-source venv/bin/activate
+pip install -e ".[test]"
 ```
-Now install the dependencies and test dependencies:
-```bash
-pip install -e '.[test]'
-```
-To run the tests:
+
+### Running Tests
+
+Run all tests:
 ```bash
 pytest
 ```
 
-### Snapshot Testing
-
-The test suite includes snapshot tests that verify the exact output of commands. If you make changes that intentionally modify the output format, you'll need to update the snapshots.
-
-To update snapshots:
+Update snapshots when output changes:
 ```bash
-rm tests/snapshots/summary_output.txt
-pytest
+pytest --snapshot-update
 ```
 
-The first test run will create a new snapshot with the current output. Subsequent runs will verify against this new snapshot.
+Update specific test snapshots:
+```bash
+pytest -k "test_name" --snapshot-update
+```
+
+### Commands
+
+#### `api-browser openapi <filename>`
+
+Start a local server to view the OpenAPI documentation in a web browser.
+
+#### `api-browser summary <filename>`
+
+Display a summary table of all API endpoints, including:
+- Path
+- HTTP Method
+- Operation ID
+- Status Code
+- Request Schema
+- Response Schema
+
+#### `api-browser schema <filename> <schema_name>`
+
+Display a schema from the OpenAPI file in a tree format. Required properties are marked with an asterisk (*).
+
+Example:
+```
+Schema: User
+* indicates required property
+
+├── id* (integer)
+├── name* (string)
+├── email (string)
+└── address (Address)
+    ├── street* (string)
+    ├── city (string)
+    └── country (string)
+```

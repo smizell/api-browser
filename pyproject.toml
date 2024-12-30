@@ -7,7 +7,7 @@ requires-python = ">=3.8"
 authors = [{ name = "Stephen Mizell" }]
 license = { text = "Apache-2.0" }
 classifiers = ["License :: OSI Approved :: Apache Software License"]
-dependencies = ["click", "Flask"]
+dependencies = ["click", "Flask", "pyyaml", "tabulate"]
 
 [build-system]
 requires = ["setuptools"]
@@ -19,9 +19,8 @@ Changelog = "https://github.com/smizell/api-browser/releases"
 Issues = "https://github.com/smizell/api-browser/issues"
 CI = "https://github.com/smizell/api-browser/actions"
 
-
 [project.optional-dependencies]
-test = ["pytest"]
+test = ["pytest", "syrupy"]
 
 [tool.setuptools.package-data]
 api_browser = ["templates/*"]
