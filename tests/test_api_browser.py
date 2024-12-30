@@ -56,6 +56,65 @@ def test_summary_command(snapshot):
 def test_schema_command(snapshot):
     # Create a sample OpenAPI spec with nested schemas and circular references
     openapi_spec = {
+        "paths": {
+            "/users": {
+                "post": {
+                    "operationId": "createUser",
+                    "requestBody": {
+                        "content": {
+                            "application/json": {
+                                "schema": {"$ref": "#/components/schemas/User"}
+                            }
+                        }
+                    },
+                    "responses": {
+                        "201": {
+                            "content": {
+                                "application/json": {
+                                    "schema": {"$ref": "#/components/schemas/User"}
+                                }
+                            }
+                        }
+                    }
+                },
+                "get": {
+                    "operationId": "listUsers",
+                    "responses": {
+                        "200": {
+                            "content": {
+                                "application/json": {
+                                    "schema": {
+                                        "type": "array",
+                                        "items": {"$ref": "#/components/schemas/User"}
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "/users/{id}": {
+                "put": {
+                    "operationId": "updateUser",
+                    "requestBody": {
+                        "content": {
+                            "application/json": {
+                                "schema": {"$ref": "#/components/schemas/User"}
+                            }
+                        }
+                    },
+                    "responses": {
+                        "200": {
+                            "content": {
+                                "application/json": {
+                                    "schema": {"$ref": "#/components/schemas/User"}
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "components": {
             "schemas": {
                 "Pet": {

@@ -175,6 +175,60 @@ def schema(filename, schema_name):
             current = current[part]
         return current
     
+    def find_schema_usage(schema_name):
+        """Find where the schema is used in requests and responses."""
+        request_ops = []
+        response_ops = []
+        target_ref = f"#/components/schemas/{schema_name}"
+        
+        def check_schema_ref(schema):
+            """Check if a schema or its nested items reference the target schema."""
+            if not isinstance(schema, dict):
+                return False
+            
+            # Direct reference match
+            if is_ref(schema) and schema["$ref"] == target_ref:
+                return True
+            
+            # Check array items
+            if schema.get("type") == "array" and isinstance(schema.get("items"), dict):
+                if is_ref(schema["items"]) and schema["items"]["$ref"] == target_ref:
+                    return True
+            
+            return False
+        
+        paths = api_spec.get("paths", {})
+        for path, path_item in paths.items():
+            for method, operation in path_item.items():
+                if method == "parameters":
+                    continue
+                
+                operation_id = operation.get("operationId", "")
+                if not operation_id:
+                    continue
+                
+                # Check request body
+                request_body = operation.get("requestBody", {})
+                if request_body:
+                    content = request_body.get("content", {})
+                    for content_type in content.values():
+                        schema = content_type.get("schema", {})
+                        if check_schema_ref(schema):
+                            request_ops.append(operation_id)
+                            break
+                
+                # Check responses
+                responses = operation.get("responses", {})
+                for response in responses.values():
+                    content = response.get("content", {})
+                    for content_type in content.values():
+                        schema = content_type.get("schema", {})
+                        if check_schema_ref(schema):
+                            response_ops.append(operation_id)
+                            break
+        
+        return sorted(request_ops), sorted(response_ops)
+    
     def print_schema_tree(schema: dict, indent: str = "", schema_ref: str = None, ref_path: list = None):
         """Print a schema as a tree."""
         if not isinstance(schema, dict):
@@ -262,9 +316,15 @@ def schema(filename, schema_name):
         click.echo(f"Schema '{schema_name}' not found", err=True)
         return
     
+    # Find where the schema is used
+    request_ops, response_ops = find_schema_usage(schema_name)
+    
     # Print the schema tree
     click.echo(f"Schema: {schema_name}")
-    click.echo("* indicates required property")
+    if request_ops:
+        click.echo(f"Requests: {', '.join(request_ops)}")
+    if response_ops:
+        click.echo(f"Responses: {', '.join(response_ops)}")
     click.echo()
     print_schema_tree(schema_data)
 

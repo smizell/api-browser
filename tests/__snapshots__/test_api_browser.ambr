@@ -2,7 +2,8 @@
 # name: test_schema_command
   '''
   Schema: User
-  * indicates required property
+  Requests: createUser, updateUser
+  Responses: createUser, listUsers, updateUser
   
   ├── address (Address)
   │   ├── city (string)
