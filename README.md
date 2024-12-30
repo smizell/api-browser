@@ -27,6 +27,10 @@ See `api_browser --help` for all details.
 
 Load the OpenAPI file and show Redoc documentation. Refresh the page to load any changes to the OpenAPI file.
 
+### `api_browser summary <filename>`
+
+Display a summary table of the API endpoints in the terminal.
+
 ## Development
 
 To contribute to this library, first checkout the code. Then create a new virtual environment:
@@ -43,3 +47,15 @@ To run the tests:
 ```bash
 pytest
 ```
+
+### Snapshot Testing
+
+The test suite includes snapshot tests that verify the exact output of commands. If you make changes that intentionally modify the output format, you'll need to update the snapshots.
+
+To update snapshots:
+```bash
+rm tests/snapshots/summary_output.txt
+pytest
+```
+
+The first test run will create a new snapshot with the current output. Subsequent runs will verify against this new snapshot.
