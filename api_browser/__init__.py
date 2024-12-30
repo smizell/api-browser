@@ -310,6 +310,42 @@ def schema(filename, schema_name):
                     click.echo(f"{indent}{prefix}{prop_name}{indicator} (object)")
                     print_schema_tree(prop_schema, next_indent, None, current_path)
     
+    def find_schema_references(schema_name):
+        """Find which schemas reference the given schema."""
+        referencing_schemas = set()
+        target_ref = f"#/components/schemas/{schema_name}"
+        
+        def check_schema_for_refs(schema, current_schema_name):
+            """Recursively check a schema and its nested properties for references."""
+            if not isinstance(schema, dict):
+                return
+                
+            # Check for direct reference
+            if is_ref(schema) and schema["$ref"] == target_ref:
+                referencing_schemas.add(current_schema_name)
+                return
+                
+            # Check array items
+            if schema.get("type") == "array" and isinstance(schema.get("items"), dict):
+                check_schema_for_refs(schema["items"], current_schema_name)
+                
+            # Check properties
+            for prop_schema in schema.get("properties", {}).values():
+                check_schema_for_refs(prop_schema, current_schema_name)
+                
+            # Check allOf, anyOf, oneOf
+            for composite_type in ["allOf", "anyOf", "oneOf"]:
+                for subschema in schema.get(composite_type, []):
+                    check_schema_for_refs(subschema, current_schema_name)
+        
+        # Scan all schemas
+        schemas = api_spec.get("components", {}).get("schemas", {})
+        for schema_name_to_check, schema_to_check in schemas.items():
+            if schema_name_to_check != schema_name:  # Don't check the schema against itself
+                check_schema_for_refs(schema_to_check, schema_name_to_check)
+        
+        return sorted(referencing_schemas)
+    
     # Get the initial schema
     schema_data = api_spec.get("components", {}).get("schemas", {}).get(schema_name)
     if schema_data is None:
@@ -318,9 +354,12 @@ def schema(filename, schema_name):
     
     # Find where the schema is used
     request_ops, response_ops = find_schema_usage(schema_name)
+    referencing_schemas = find_schema_references(schema_name)
     
     # Print the schema tree
     click.echo(f"Schema: {schema_name}")
+    if referencing_schemas:
+        click.echo(f"Referenced by: {', '.join(referencing_schemas)}")
     if request_ops:
         click.echo(f"Requests: {', '.join(request_ops)}")
     if response_ops:

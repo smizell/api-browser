@@ -2,6 +2,7 @@
 # name: test_schema_command
   '''
   Schema: User
+  Referenced by: Address, Pet
   Requests: createUser, updateUser
   Responses: createUser, listUsers, updateUser
   
