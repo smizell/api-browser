@@ -8,7 +8,7 @@ from flask import Flask, render_template
 from threading import Timer
 from tabulate import tabulate
 from typing import Optional
-from .openapi import get_with_refs
+from .openapi import is_ref, get_with_refs, get_schema_name
 
 ####### Server
 
@@ -60,15 +60,6 @@ def _open_browser():
     webbrowser.open_new("http://127.0.0.1:5000/openapi-documentation")
 
 
-def get_schema_name(schema_ref: Optional[str]) -> str:
-    """Extract schema name from $ref or return appropriate placeholder."""
-    if not schema_ref:
-        return "(none)"
-    if not schema_ref.startswith("#/components/schemas/"):
-        return "(inline)"
-    return schema_ref.split("/")[-1]
-
-
 def get_response_schema_name(responses: dict) -> str:
     """Get schema name for success response (2xx)."""
     for status_code, response in responses.items():
@@ -79,9 +70,12 @@ def get_response_schema_name(responses: dict) -> str:
             
             # Get the first content type (usually application/json)
             first_content = next(iter(content.values()))
-            schema = get_with_refs(first_content, ["schema"], default={})
-            ref = get_with_refs(schema, ["$ref"], default=None)
-            return get_schema_name(ref)
+            schema = first_content.get("schema", {})
+            
+            # Check if it's a reference before resolving
+            if is_ref(schema):
+                return get_schema_name(schema["$ref"])
+            return "(inline)"
     return "(none)"
 
 
@@ -97,9 +91,12 @@ def get_request_schema_name(operation: dict) -> str:
     
     # Get the first content type (usually application/json)
     first_content = next(iter(content.values()))
-    schema = get_with_refs(first_content, ["schema"], default={})
-    ref = get_with_refs(schema, ["$ref"], default=None)
-    return get_schema_name(ref)
+    schema = first_content.get("schema", {})
+    
+    # Check if it's a reference before resolving
+    if is_ref(schema):
+        return get_schema_name(schema["$ref"])
+    return "(inline)"
 
 
 def get_success_status_code(responses: dict) -> str:

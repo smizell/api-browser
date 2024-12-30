@@ -1,6 +1,19 @@
+from typing import Optional
+
+__all__ = ['is_ref', 'get_with_refs', 'get_schema_name']
+
 def is_ref(value) -> bool:
     """Check if a value is a reference object (has $ref property)."""
     return isinstance(value, dict) and "$ref" in value
+
+
+def get_schema_name(schema_ref: Optional[str]) -> str:
+    """Extract schema name from $ref or return appropriate placeholder."""
+    if not schema_ref:
+        return "(none)"
+    if not schema_ref.startswith("#/components/schemas/"):
+        return "(inline)"
+    return schema_ref.split("/")[-1]
 
 
 def get_with_refs(value, path_parts, root=None, default=None):
