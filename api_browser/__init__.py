@@ -154,8 +154,104 @@ def summary(filename):
     click.echo(tabulate(rows, headers=headers, tablefmt="grid"))
 
 
+@click.command()
+@click.argument("filename")
+@click.argument("schema_name")
+def schema(filename, schema_name):
+    """Display a schema from the OpenAPI file in a tree format."""
+    # Read and parse the OpenAPI file
+    with open(filename) as f:
+        api_spec = yaml.safe_load(f)
+    
+    def get_schema_by_ref(ref: str):
+        """Get a schema by its reference."""
+        if not ref.startswith("#/"):
+            return None
+        parts = ref.lstrip("#/").split("/")
+        current = api_spec
+        for part in parts:
+            if part not in current:
+                return None
+            current = current[part]
+        return current
+    
+    def print_schema_tree(schema: dict, indent: str = "", schema_ref: str = None, ref_path: list = None):
+        """Print a schema as a tree."""
+        if not isinstance(schema, dict):
+            return
+            
+        if ref_path is None:
+            ref_path = []
+            
+        # Handle circular references
+        if schema_ref and schema_ref in ref_path:
+            click.echo(f"{indent}[Circular reference to {schema_ref}]")
+            return
+            
+        # Add current ref to path
+        current_path = ref_path + ([schema_ref] if schema_ref else [])
+            
+        properties = schema.get("properties", {})
+        required = schema.get("required", [])
+        
+        for i, (prop_name, prop_schema) in enumerate(properties.items()):
+            is_last = i == len(properties) - 1
+            prefix = "└── " if is_last else "├── "
+            next_indent = indent + ("    " if is_last else "│   ")
+            indicator = "*" if prop_name in required else ""
+            
+            if "$ref" in prop_schema:
+                ref = prop_schema["$ref"]
+                ref_name = ref.split("/")[-1]
+                click.echo(f"{indent}{prefix}{prop_name}{indicator} ({ref_name})")
+                
+                # Only expand if not creating a cycle
+                if ref not in current_path:
+                    ref_schema = get_schema_by_ref(ref)
+                    if ref_schema:
+                        print_schema_tree(ref_schema, next_indent, ref, current_path)
+            else:
+                prop_type = prop_schema.get("type", "object")
+                
+                if prop_type == "array":
+                    items = prop_schema.get("items", {})
+                    if "$ref" in items:
+                        ref_name = items["$ref"].split("/")[-1]
+                        click.echo(f"{indent}{prefix}{prop_name}{indicator} (array[{ref_name}])")
+                        
+                        if items["$ref"] not in current_path:
+                            ref_schema = get_schema_by_ref(items["$ref"])
+                            if ref_schema:
+                                print_schema_tree(ref_schema, next_indent, items["$ref"], current_path)
+                    else:
+                        item_type = items.get("type", "object")
+                        if item_type in ["string", "number", "integer", "boolean"]:
+                            click.echo(f"{indent}{prefix}{prop_name}{indicator} (array[{item_type}])")
+                        else:
+                            click.echo(f"{indent}{prefix}{prop_name}{indicator} (array[object])")
+                            print_schema_tree(items, next_indent, None, current_path)
+                elif prop_type in ["string", "number", "integer", "boolean"]:
+                    click.echo(f"{indent}{prefix}{prop_name}{indicator} ({prop_type})")
+                else:
+                    click.echo(f"{indent}{prefix}{prop_name}{indicator} (object)")
+                    print_schema_tree(prop_schema, next_indent, None, current_path)
+    
+    # Get the initial schema
+    schema_data = api_spec.get("components", {}).get("schemas", {}).get(schema_name)
+    if schema_data is None:
+        click.echo(f"Schema '{schema_name}' not found", err=True)
+        return
+    
+    # Print the schema tree
+    click.echo(f"Schema: {schema_name}")
+    click.echo("* indicates required property")
+    click.echo()
+    print_schema_tree(schema_data)
+
+
 # Add the new command to the CLI group
 cli.add_command(summary)
+cli.add_command(schema)
 
 
 if __name__ == "__main__":

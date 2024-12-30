@@ -31,6 +31,10 @@ Load the OpenAPI file and show Redoc documentation. Refresh the page to load any
 
 Display a summary table of the API endpoints in the terminal.
 
+### `api_browser schema <filename> <schema_name>`
+
+Display a schema from the OpenAPI file in a concise tree format. Required properties are marked with an asterisk (*).
+
 ## Development
 
 To contribute to this library, first checkout the code. Then create a new virtual environment:
