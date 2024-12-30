@@ -8,7 +8,7 @@ from flask import Flask, render_template
 from threading import Timer
 from tabulate import tabulate
 from typing import Optional
-from .openapi import is_ref, get_with_refs
+from .openapi import get_with_refs
 
 ####### Server
 
