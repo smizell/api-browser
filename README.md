@@ -93,7 +93,7 @@ Example output:
 
 ### `api_browser validate <filename>`
 
-Validate an OpenAPI file against the OpenAPI 3.0 specification. Shows a checkmark (✓) if valid or error details (✗) if there are validation issues.
+Validate an OpenAPI file against the OpenAPI 3.0 specification. Shows a checkmark (✓) if valid or outputs validation errors if there are issues.
 
 Example of valid file:
 ```
@@ -102,7 +102,24 @@ Example of valid file:
 
 Example of invalid file:
 ```
-✗ Error: 'openapi' is a required property
+'title' is a required property
+
+Failed validating 'required' in schema['properties']['info']:
+    {'$comment': 'https://spec.openapis.org/oas/v3.1.0#info-object',
+     'type': 'object',
+     'properties': {'title': {'type': 'string'},
+                   'summary': {'type': 'string'},
+                   'description': {'type': 'string'},
+                   'termsOfService': {'type': 'string', 'format': 'uri'},
+                   'contact': {'$ref': '#/$defs/contact'},
+                   'license': {'$ref': '#/$defs/license'},
+                   'version': {'type': 'string'}},
+     'required': ['title', 'version'],
+     '$ref': '#/$defs/specification-extensions',
+     'unevaluatedProperties': False}
+
+On instance['info']:
+    {}
 ```
 
 ## Development
