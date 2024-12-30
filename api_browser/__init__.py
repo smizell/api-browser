@@ -200,7 +200,7 @@ def schema(filename, schema_name):
             next_indent = indent + ("    " if is_last else "│   ")
             indicator = "*" if prop_name in required else ""
             
-            if "$ref" in prop_schema:
+            if is_ref(prop_schema):
                 ref = prop_schema["$ref"]
                 ref_name = ref.split("/")[-1]
                 click.echo(f"{indent}{prefix}{prop_name}{indicator} ({ref_name})")
@@ -215,7 +215,7 @@ def schema(filename, schema_name):
                 
                 if prop_type == "array":
                     items = prop_schema.get("items", {})
-                    if "$ref" in items:
+                    if is_ref(items):
                         ref_name = items["$ref"].split("/")[-1]
                         click.echo(f"{indent}{prefix}{prop_name}{indicator} (array[{ref_name}])")
                         
