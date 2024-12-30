@@ -58,6 +58,42 @@ def test_schema_command(snapshot):
     openapi_spec = {
         "components": {
             "schemas": {
+                "Pet": {
+                    "allOf": [
+                        {
+                            "type": "object",
+                            "required": ["name"],
+                            "properties": {
+                                "name": {"type": "string"},
+                                "age": {"type": "integer"}
+                            }
+                        },
+                        {
+                            "type": "object",
+                            "properties": {
+                                "owner": {"$ref": "#/components/schemas/User"}
+                            }
+                        }
+                    ]
+                },
+                "Error": {
+                    "oneOf": [
+                        {
+                            "type": "object",
+                            "properties": {
+                                "code": {"type": "integer"},
+                                "message": {"type": "string"}
+                            }
+                        },
+                        {
+                            "type": "object",
+                            "properties": {
+                                "error": {"type": "string"},
+                                "details": {"type": "string"}
+                            }
+                        }
+                    ]
+                },
                 "Address": {
                     "type": "object",
                     "required": ["street"],
@@ -76,30 +112,21 @@ def test_schema_command(snapshot):
                         "name": {"type": "string"},
                         "email": {"type": "string"},
                         "address": {"$ref": "#/components/schemas/Address"},
-                        "tags": {
+                        "pets": {
                             "type": "array",
-                            "items": {"type": "string"}
+                            "items": {"$ref": "#/components/schemas/Pet"}
                         },
-                        "friends": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "id": {"type": "integer"},
-                                    "name": {"type": "string"},
-                                    "hobbies": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "object",
-                                            "required": ["name"],
-                                            "properties": {
-                                                "name": {"type": "string"},
-                                                "level": {"type": "string"}
-                                            }
-                                        }
+                        "metadata": {
+                            "anyOf": [
+                                {"type": "string"},
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "key": {"type": "string"},
+                                        "value": {"type": "string"}
                                     }
                                 }
-                            }
+                            ]
                         }
                     }
                 }
