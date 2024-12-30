@@ -72,32 +72,32 @@ def get_response_schema_name(responses: dict) -> str:
     """Get schema name for success response (2xx)."""
     for status_code, response in responses.items():
         if 200 <= int(status_code) <= 299:
-            content = response.get("content", {})
+            content = get_with_refs(response, ["content"], default={})
             if not content:
                 return "(none)"
             
             # Get the first content type (usually application/json)
             first_content = next(iter(content.values()))
-            schema = first_content.get("schema", {})
-            ref = schema.get("$ref") if isinstance(schema, dict) and "$ref" in schema else None
+            schema = get_with_refs(first_content, ["schema"], default={})
+            ref = get_with_refs(schema, ["$ref"], default=None)
             return get_schema_name(ref)
     return "(none)"
 
 
 def get_request_schema_name(operation: dict) -> str:
     """Get schema name for request body."""
-    request_body = operation.get("requestBody", {})
+    request_body = get_with_refs(operation, ["requestBody"], default={})
     if not request_body:
         return "(none)"
     
-    content = request_body.get("content", {})
+    content = get_with_refs(request_body, ["content"], default={})
     if not content:
         return "(none)"
     
     # Get the first content type (usually application/json)
     first_content = next(iter(content.values()))
-    schema = first_content.get("schema", {})
-    ref = schema.get("$ref")
+    schema = get_with_refs(first_content, ["schema"], default={})
+    ref = get_with_refs(schema, ["$ref"], default=None)
     return get_schema_name(ref)
 
 
@@ -118,9 +118,9 @@ def summary(filename):
         api_spec = yaml.safe_load(f)
     
     # Print title and description if available
-    info = api_spec.get("info", {})
-    title = info.get("title", "Untitled API")
-    description = info.get("description", "No description provided")
+    info = get_with_refs(api_spec, ["info"], default={})
+    title = get_with_refs(info, ["title"], default="Untitled API")
+    description = get_with_refs(info, ["description"], default="No description provided")
     
     click.echo(f"Title: {title}")
     click.echo(f"Description: {description}")
@@ -128,15 +128,17 @@ def summary(filename):
     
     rows = []
     
-    for path, path_item in api_spec["paths"].items():
+    paths = get_with_refs(api_spec, ["paths"], default={})
+    for path, path_item in paths.items():
         for method, operation in path_item.items():
             if method == "parameters":  # Skip common parameters
                 continue
                 
-            operation_id = operation.get("operationId", "")
+            operation_id = get_with_refs(operation, ["operationId"], default="")
             request_schema = get_request_schema_name(operation)
-            response_schema = get_response_schema_name(operation.get("responses", {}))
-            status_code = get_success_status_code(operation.get("responses", {}))
+            responses = get_with_refs(operation, ["responses"], default={})
+            response_schema = get_response_schema_name(responses)
+            status_code = get_success_status_code(responses)
             
             rows.append([
                 path,
@@ -156,6 +158,63 @@ def summary(filename):
 
 # Add the new command to the CLI group
 cli.add_command(summary)
+
+
+def is_ref(value) -> bool:
+    """Check if a value is a reference object (has $ref property)."""
+    return isinstance(value, dict) and "$ref" in value
+
+
+def get_with_refs(value, path_parts, root=None, default=None):
+    """
+    Get a value from a nested structure, following any $ref references.
+    
+    Args:
+        value: The value to traverse
+        path_parts: List of strings/integers representing the path to follow
+        root: The root document for resolving refs (defaults to value if not provided)
+        default: Value to return if path is not found (defaults to None)
+    
+    Returns:
+        The value at the path, dereferenced if it's a ref, or default if not found
+    """
+    if root is None:
+        root = value
+        
+    if not path_parts:
+        # If we hit a ref, resolve it and return the dereferenced value
+        if is_ref(value):
+            ref_path = value["$ref"].lstrip("#/").split("/")
+            return get_with_refs(root, ref_path, root, default)
+        return value
+        
+    current_key = path_parts[0]
+    remaining_path = path_parts[1:]
+    
+    # Handle array indexing
+    if isinstance(value, list):
+        try:
+            if not isinstance(current_key, int):
+                current_key = int(current_key)
+            next_value = value[current_key]
+            return get_with_refs(next_value, remaining_path, root, default)
+        except (ValueError, IndexError):
+            return default
+            
+    # Handle dict access
+    if isinstance(value, dict):
+        # If we hit a ref, resolve it first then continue with the path
+        if is_ref(value):
+            ref_path = value["$ref"].lstrip("#/").split("/")
+            resolved_value = get_with_refs(root, ref_path, root, default)
+            return get_with_refs(resolved_value, path_parts, root, default)
+            
+        next_value = value.get(current_key)
+        if next_value is None:
+            return default
+        return get_with_refs(next_value, remaining_path, root, default)
+        
+    return default
 
 
 if __name__ == "__main__":
