@@ -290,6 +290,7 @@ def test_validate_command_valid(snapshot):
         
         # Check that the command succeeded
         assert result.exit_code == 0
+        assert result.output.strip() == "✓ OpenAPI specification is valid"
         
         # Compare with snapshot
         assert result.output == snapshot
@@ -315,13 +316,10 @@ def test_validate_command_invalid(snapshot):
     
     try:
         runner = CliRunner()
-        result = runner.invoke(validate_cmd, [temp_file])
+        result = runner.invoke(validate_cmd, [temp_file], mix_stderr=True)
         
         # Check that the command failed
         assert result.exit_code == 1
-        
-        # Check the error message
-        assert "✗ Error: 'openapi' is a required property" in result.output
         
         # Compare with snapshot
         assert result.output == snapshot

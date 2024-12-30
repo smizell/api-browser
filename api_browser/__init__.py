@@ -429,36 +429,15 @@ def urls(filename):
 @click.argument("filename")
 def validate_cmd(filename):
     """Validate an OpenAPI file."""
-    try:
-        with open(filename) as f:
+    with open(filename) as f:
             spec = yaml.safe_load(f)
-        
-        # Check for required OpenAPI fields
-        if "openapi" not in spec:
-            raise click.ClickException("✗ Error: 'openapi' is a required property")
             
-        if "info" not in spec:
-            raise click.ClickException("✗ Error: 'info' is a required property")
-            
-        if "paths" not in spec:
-            raise click.ClickException("✗ Error: 'paths' is a required property")
-            
-        if "version" not in spec.get("info", {}):
-            raise click.ClickException("✗ Error: 'version' is a required property in info")
-            
-        # If we get here, validate against the OpenAPI schema
-        try:
-            validate(spec)
-            click.echo("✓ OpenAPI specification is valid")
-            return 0
-        except Exception as e:
-            raise click.ClickException(f"✗ Error: {str(e)}")
-            
-    except click.ClickException:
-        raise
+    try:
+        validate(spec)
+        click.echo("✓ OpenAPI specification is valid")
     except Exception as e:
-        raise click.ClickException(f"✗ Error: {str(e)}")
-
+        click.echo(e, err=True)
+        sys.exit(1)
 
 # Add the new command to the CLI group
 cli.add_command(summary)

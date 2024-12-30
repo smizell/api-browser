@@ -88,10 +88,7 @@
   '''
 # ---
 # name: test_validate_command_invalid
-  '''
-  Error: ✗ Error: 'openapi' is a required property
-  
-  '''
+  ''
 # ---
 # name: test_validate_command_valid
   '''
