@@ -1,0 +1,11 @@
+Title: Test API
+Description: A test API description
+
++------------+--------+------------+--------+----------------+------------------+
+| Path       | Method | Operation  | Status | Request Schema | Response Schema  |
+|            |        | ID         |        |                |                  |
++------------+--------+------------+--------+----------------+------------------+
+| /pets      | GET    | listPets   | 200    | (none)         | PetList          |
+| /pets      | POST   | createPet  | 201    | Pet            | Pet              |
+| /pets/{id} | GET    | getPet     | 200    | (none)         | (inline)         |
++------------+--------+------------+--------+----------------+------------------+ 
