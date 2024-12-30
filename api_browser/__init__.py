@@ -190,6 +190,26 @@ def schema(filename, schema_name):
             
         # Add current ref to path
         current_path = ref_path + ([schema_ref] if schema_ref else [])
+        
+        # Handle allOf, anyOf, oneOf
+        for composite_type in ["allOf", "anyOf", "oneOf"]:
+            if composite_type in schema:
+                click.echo(f"{indent}({composite_type})")
+                next_indent = indent + "    "
+                for i, subschema in enumerate(schema[composite_type]):
+                    if is_ref(subschema):
+                        ref = subschema["$ref"]
+                        ref_name = ref.split("/")[-1]
+                        click.echo(f"{next_indent}└── ({ref_name})")
+                        if ref not in current_path:
+                            ref_schema = get_schema_by_ref(ref)
+                            if ref_schema:
+                                print_schema_tree(ref_schema, next_indent + "    ", ref, current_path)
+                    else:
+                        schema_type = subschema.get("type", "object")
+                        click.echo(f"{next_indent}└── ({schema_type})")
+                        print_schema_tree(subschema, next_indent + "    ", None, current_path)
+                return
             
         properties = schema.get("properties", {})
         required = schema.get("required", [])
