@@ -1,7 +1,7 @@
 import pytest
 from api_browser import cli  # Update import to only what's needed for this test file
 from click.testing import CliRunner
-from api_browser import summary, schema, urls  # Add urls to imports
+from api_browser import summary, schema, urls, validate_cmd  # Add urls and validate_cmd to imports
 import yaml
 import tempfile
 import os
@@ -260,6 +260,68 @@ def test_urls_command(snapshot):
         
         # Check that the command succeeded
         assert result.exit_code == 0
+        
+        # Compare with snapshot
+        assert result.output == snapshot
+        
+    finally:
+        # Clean up the temporary file
+        os.unlink(temp_file)
+
+def test_validate_command_valid(snapshot):
+    # Create a valid OpenAPI spec
+    openapi_spec = {
+        "openapi": "3.0.0",
+        "info": {
+            "title": "Test API",
+            "version": "1.0.0"
+        },
+        "paths": {}
+    }
+    
+    # Create a temporary file with the OpenAPI spec
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        yaml.dump(openapi_spec, f)
+        temp_file = f.name
+    
+    try:
+        runner = CliRunner()
+        result = runner.invoke(validate_cmd, [temp_file])
+        
+        # Check that the command succeeded
+        assert result.exit_code == 0
+        
+        # Compare with snapshot
+        assert result.output == snapshot
+        
+    finally:
+        # Clean up the temporary file
+        os.unlink(temp_file)
+
+def test_validate_command_invalid(snapshot):
+    # Create an invalid OpenAPI spec (missing required fields)
+    openapi_spec = {
+        "info": {
+            "title": "Test API"
+            # Missing required version field and openapi version
+        },
+        "paths": {}
+    }
+    
+    # Create a temporary file with the OpenAPI spec
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        yaml.dump(openapi_spec, f)
+        temp_file = f.name
+    
+    try:
+        runner = CliRunner()
+        result = runner.invoke(validate_cmd, [temp_file])
+        
+        # Check that the command failed
+        assert result.exit_code == 1
+        
+        # Check the error message
+        assert "✗ Error: 'openapi' is a required property" in result.output
         
         # Compare with snapshot
         assert result.output == snapshot

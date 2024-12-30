@@ -2,6 +2,7 @@ import click
 import flask.cli
 import logging
 import os
+import sys
 import webbrowser
 import yaml
 from flask import Flask, render_template
@@ -9,6 +10,7 @@ from threading import Timer
 from tabulate import tabulate
 from typing import Optional
 from .openapi import is_ref, get_with_refs, get_schema_name
+from openapi_spec_validator import validate
 
 ####### Server
 
@@ -423,10 +425,46 @@ def urls(filename):
     print_tree(root)
 
 
+@click.command()
+@click.argument("filename")
+def validate_cmd(filename):
+    """Validate an OpenAPI file."""
+    try:
+        with open(filename) as f:
+            spec = yaml.safe_load(f)
+        
+        # Check for required OpenAPI fields
+        if "openapi" not in spec:
+            raise click.ClickException("✗ Error: 'openapi' is a required property")
+            
+        if "info" not in spec:
+            raise click.ClickException("✗ Error: 'info' is a required property")
+            
+        if "paths" not in spec:
+            raise click.ClickException("✗ Error: 'paths' is a required property")
+            
+        if "version" not in spec.get("info", {}):
+            raise click.ClickException("✗ Error: 'version' is a required property in info")
+            
+        # If we get here, validate against the OpenAPI schema
+        try:
+            validate(spec)
+            click.echo("✓ OpenAPI specification is valid")
+            return 0
+        except Exception as e:
+            raise click.ClickException(f"✗ Error: {str(e)}")
+            
+    except click.ClickException:
+        raise
+    except Exception as e:
+        raise click.ClickException(f"✗ Error: {str(e)}")
+
+
 # Add the new command to the CLI group
 cli.add_command(summary)
 cli.add_command(schema)
 cli.add_command(urls)
+cli.add_command(validate_cmd, name="validate")
 
 
 if __name__ == "__main__":

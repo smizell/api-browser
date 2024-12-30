@@ -52,6 +52,20 @@ Example:
 
 This visualization helps understand the API's URL structure, how different endpoints are related, and what operations are available at each endpoint.
 
+### `api_browser validate <filename>`
+
+Validate an OpenAPI file against the OpenAPI 3.0 specification. Shows a checkmark (✓) if valid or an error message (✗) with details if there are validation issues.
+
+Example of valid file:
+```
+✓ OpenAPI specification is valid
+```
+
+Example of invalid file:
+```
+✗ Error: 'openapi' is a required property
+```
+
 ## Development
 
 ### Installation
