@@ -1,13 +1,13 @@
 [project]
 name = "api-browser"
-version = "0.1.4"
+version = "0.2.0"
 description = "Browse API documentation"
 readme = "README.md"
 requires-python = ">=3.8"
 authors = [{ name = "Stephen Mizell" }]
 license = { text = "Apache-2.0" }
 classifiers = ["License :: OSI Approved :: Apache Software License"]
-dependencies = ["click", "Flask", "pyyaml", "tabulate"]
+dependencies = ["click", "Flask", "pyyaml", "tabulate", "openapi-spec-validator"]
 
 [build-system]
 requires = ["setuptools"]
@@ -19,11 +19,11 @@ Changelog = "https://github.com/smizell/api-browser/releases"
 Issues = "https://github.com/smizell/api-browser/issues"
 CI = "https://github.com/smizell/api-browser/actions"
 
-[project.optional-dependencies]
-test = ["pytest", "syrupy"]
-
-[tool.setuptools.package-data]
-api_browser = ["templates/*"]
-
 [project.scripts]
-api_browser = "api_browser.__init__:cli"
+api_browser = "api_browser:cli"
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "syrupy"
+]
