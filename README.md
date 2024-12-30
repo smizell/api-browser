@@ -5,56 +5,95 @@
 [![Changelog](https://img.shields.io/github/v/release/smizell/api-browser?include_prereleases&label=changelog)](https://github.com/smizell/api-browser/releases)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](https://github.com/smizell/api-browser/blob/main/LICENSE)
 
-Browse API documentation
+Browse and analyze OpenAPI documentation from your terminal.
 
 ## Installation
 
-You can use `pipx` to install this tool.
+Install with `pipx` (recommended):
 
 * [Install pipx](https://pipx.pypa.io/latest/installation/)
 * Run `pipx install api-browser`
 
-You can also use `pip`:
+Or install with `pip`:
 
 ```bash
 pip install api-browser
 ```
-## Usage
 
-See `api_browser --help` for all details.
+## Commands
 
 ### `api_browser openapi <filename>`
 
-Load the OpenAPI file and show Redoc documentation. Refresh the page to load any changes to the OpenAPI file.
+Start a local server to view the OpenAPI documentation in a web browser using Redoc. The page will automatically refresh when the OpenAPI file changes.
 
 ### `api_browser summary <filename>`
 
-Display a summary table of the API endpoints in the terminal.
+Display a summary table of all API endpoints in the terminal, showing:
+- Path
+- HTTP Method
+- Operation ID
+- Status Code
+- Request Schema
+- Response Schema
+
+Example output:
+```
+Title: Test API
+Description: A test API description
+
++--------+----------+----------------+----------+------------------+-------------------+
+| Path   | Method   | Operation ID   |   Status | Request Schema   | Response Schema   |
++========+==========+================+==========+==================+===================+
+| /pets  | GET      | listPets       |      200 | (none)           | PetList           |
++--------+----------+----------------+----------+------------------+-------------------+
+```
 
 ### `api_browser schema <filename> <schema_name>`
 
-Display a schema from the OpenAPI file in a concise tree format. Required properties are marked with an asterisk (*).
+Display a schema from the OpenAPI file in a tree format. Shows:
+- Property names (required properties marked with *)
+- Property types and references
+- Nested object structures
+- Array types
+- Where the schema is used (requests, responses, and other schemas)
+
+Example output:
+```
+Schema: User
+Referenced by: Address, Pet
+Requests: createUser, updateUser
+Responses: getUser, listUsers
+
+├── id* (integer)
+├── name* (string)
+├── email (string)
+├── address (Address)
+│   ├── street* (string)
+│   ├── city (string)
+│   └── country (string)
+└── pets (array[Pet])
+    ├── name* (string)
+    └── age (integer)
+```
 
 ### `api_browser urls <filename>`
 
-Display a tree view of URL segments from the OpenAPI file, showing how endpoints are hierarchically organized. Each endpoint shows its available operation IDs.
+Display a tree view of URL segments, showing the API's hierarchical structure and available operations at each endpoint.
 
-Example:
+Example output:
 ```
-├── customers (listCustomers, createCustomer)
-│   ├── {id} (getCustomer, updateCustomer, deleteCustomer)
-│   │   └── orders (listCustomerOrders, createCustomerOrder)
-│   │       └── {orderId} (getCustomerOrder, updateCustomerOrder, deleteCustomerOrder)
-│   └── search (searchCustomers)
-└── orders (listOrders, createOrder)
-    └── {id} (getOrder, updateOrder, deleteOrder)
+├── customers (createCustomer, listCustomers)
+│   ├── search (searchCustomers)
+│   └── {id} (deleteCustomer, getCustomer, updateCustomer)
+│       └── orders (createCustomerOrder, listCustomerOrders)
+│           └── {orderId} (deleteCustomerOrder, getCustomerOrder, updateCustomerOrder)
+└── orders (createOrder, listOrders)
+    └── {id} (deleteOrder, getOrder, updateOrder)
 ```
-
-This visualization helps understand the API's URL structure, how different endpoints are related, and what operations are available at each endpoint.
 
 ### `api_browser validate <filename>`
 
-Validate an OpenAPI file against the OpenAPI 3.0 specification. Shows a checkmark (✓) if valid or an error message (✗) with details if there are validation issues.
+Validate an OpenAPI file against the OpenAPI 3.0 specification. Shows a checkmark (✓) if valid or error details (✗) if there are validation issues.
 
 Example of valid file:
 ```
@@ -68,61 +107,22 @@ Example of invalid file:
 
 ## Development
 
-### Installation
+To contribute to api-browser:
 
-Clone the repository and install the package in development mode with test dependencies:
-
-```bash
-pip install -e ".[test]"
-```
-
-### Running Tests
-
-Run all tests:
-```bash
-pytest
-```
-
-Update snapshots when output changes:
-```bash
-pytest --snapshot-update
-```
-
-Update specific test snapshots:
-```bash
-pytest -k "test_name" --snapshot-update
-```
-
-### Commands
-
-#### `api-browser openapi <filename>`
-
-Start a local server to view the OpenAPI documentation in a web browser.
-
-#### `api-browser summary <filename>`
-
-Display a summary table of all API endpoints, including:
-- Path
-- HTTP Method
-- Operation ID
-- Status Code
-- Request Schema
-- Response Schema
-
-#### `api-browser schema <filename> <schema_name>`
-
-Display a schema from the OpenAPI file in a tree format. Required properties are marked with an asterisk (*).
-
-Example:
-```
-Schema: User
-* indicates required property
-
-├── id* (integer)
-├── name* (string)
-├── email (string)
-└── address (Address)
-    ├── street* (string)
-    ├── city (string)
-    └── country (string)
-```
+1. Clone the repository
+2. Install development dependencies:
+   ```bash
+   pip install -e ".[test]"
+   ```
+3. Run tests:
+   ```bash
+   pytest
+   ```
+4. Update snapshots when output changes:
+   ```bash
+   pytest --snapshot-update
+   ```
+   Or update specific test snapshots:
+   ```bash
+   pytest -k "test_name" --snapshot-update
+   ```
